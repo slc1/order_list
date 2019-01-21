@@ -1,7 +1,13 @@
 <?php
-/*  Copyright 2010 SLC (email : sasha@dglance.com)
-
+/*
+Plugin Name: Order List
+Plugin URI: http://slc.org.ua/
+Description:Список заказов - плагин для управления списком заказов веб-магазина
+Version: 1.0.0
+Author: SLC
+Author http://slc.org.ua/
 */
+
 
 define( 'ORDER_LIST_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'ORDER_LIST_PLUGIN_SLUG', 'order-list');
@@ -122,7 +128,7 @@ function order_list_create_submenu()
     $pluginname = "order_list";
     if (function_exists('add_menu_page')) {
         wp_enqueue_style("order_list", plugins_url('order_list.css', __FILE__), false, " ");
-        add_menu_page("Магазин", "Магазин", 'edit_posts', ORDER_LIST_PLUGIN_SLUG, function(){ include(ORDER_LIST_PLUGIN_DIR . '/ol_prg/ol_prg.php');}, plugins_url($pluginname . '/blank.png'));
+        add_menu_page("Магазин", "Магазин", 'edit_posts', ORDER_LIST_PLUGIN_SLUG, function(){ include(ORDER_LIST_PLUGIN_DIR . '/ol_prg/ol_prg.php');}, 'dashicons-cart');
         if (function_exists('add_submenu_page')) {
             //add_submenu_page('order-list', "Список заказов", "Список заказов", 'edit_posts', dirname(plugin_basename(__FILE__)) . '/ol_prg/ol_prg.php');
             add_submenu_page(ORDER_LIST_PLUGIN_SLUG, "Параметры товара", "Параметры товара", 'edit_posts', dirname(plugin_basename(__FILE__)) . '/items/items.php');

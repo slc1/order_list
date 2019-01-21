@@ -342,4 +342,3 @@ function order_list_delete_postdata($post_id)
     }
 }
 
-?>

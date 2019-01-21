@@ -233,4 +233,3 @@ function my_slice_orderby($query)
     }
 }
 
-?>

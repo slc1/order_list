@@ -1,20 +1,4 @@
 <?php
-/*
-Plugin Name: Order List
-Plugin URI: http://slc.org.ua/
-Description:Список заказов - плагин для управления списком заказов веб-магазина
-Version: 1.0.0
-Author: SLC
-Author http://slc.org.ua/
-*/
-?>
-<?php
-/*  Copyright 2010 SLC (email : sasha@dglance.com)
-
-
-*/
-?>
-<?php
 
 /*************************************************/ 
  //error_reporting(E_ALL);
