@@ -52,7 +52,7 @@ case 'edit':
 		include WP_PLUGIN_DIR.'/'.$this_table_obj->pluginprefix.$this_table_obj->pluginname.'/includes/edit.php';
 	}else{
 	
-		$post = $this_table_obj->get_select("form", $post_ID);
+		$post = $this_table_obj->get_select_wrapper("form", $post_ID);
 
 		if ( empty($post->ID) ) wp_die( __('You attempted to edit a post that doesn&#8217;t exist. Perhaps it was deleted?') );
 	
@@ -66,7 +66,7 @@ case 'view':
 	
 	$title = __('Просмотр');
 	
-	$post = $this_table_obj->get_select("form", $post_ID);
+	$post = $this_table_obj->get_select_wrapper("form", $post_ID);
 	
      include WP_PLUGIN_DIR.'/'.$this_table_obj->pluginprefix.$this_table_obj->pluginname.'/includes/view.php';
 
@@ -78,7 +78,7 @@ case 'add':
 
 	$title = __('Добавление ');
 	
-	$post = $this_table_obj->do_add_defaults($post_ID);
+	//$post = $this_table_obj->do_add_defaults($post_ID);
 	//$post = add_jcl_stop_press();
 
 	include(WP_PLUGIN_DIR.'/'.$this_table_obj->pluginprefix.$this_table_obj->pluginname.'/includes/edit-form-advanced.php');

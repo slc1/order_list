@@ -183,7 +183,8 @@ class ol_prg_table_class {
 	}		
 	
 
-	 function get_select($id = 0, $select = ""){
+	 function get_select($id = 0, $select = "")
+     {
 		global $wpdb;
 		
 		$table_name = $wpdb->prefix.$this->tablename;
@@ -380,9 +381,11 @@ class ol_prg_table_class {
 			}
 
 			$sql .= " PRIMARY KEY  (".$key.") )  CHARSET=utf8;";
-			
 
-    if(mysql_num_rows(mysql_query("SHOW TABLES LIKE '".$table_name."'"))!=1) // проверка, существует ли уже таблица (если плагин был удален и устанавливается опять)
+
+    $wpdb->get_results("SHOW TABLES LIKE '" . $table_name . "'");
+    if ($wpdb->num_rows != 1 ) // проверка, существует ли уже таблица (если плагин был удален и устанавливается опять)
+
 
     {	
 		echo "<textarea style='width:500px;'>";
@@ -470,7 +473,7 @@ class ol_prg_table_class {
 	
 	function widget_pluginname($plugin_options, $args, $number = 1) {
 		
-		$rows = $this->get_select("widget");
+		$rows = $this->get_select_wrapper("widget");
 		$display = $this->get_widgetdef();
 		
 		// $args is an array of strings that help widgets to conform to

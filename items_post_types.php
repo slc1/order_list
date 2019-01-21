@@ -72,7 +72,7 @@ function create_post_type()
     $mysql_results = $wpdb->get_results($sql, ARRAY_A);
     foreach ($mysql_results as $mysql_result) {
         if (!(post_type_exists($mysql_result['slug']))) {
-            $post_taxonomy_arr = array($mysql_result['slug'] . "-list", 'category');
+            $post_taxonomy_arr = array($mysql_result['slug'] . "-list");
             if (taxonomy_exists($mysql_result['taxonomy_slug'])) $post_taxonomy_arr[] = $mysql_result['taxonomy_slug'];
             register_post_type($mysql_result['slug'],
                 array(

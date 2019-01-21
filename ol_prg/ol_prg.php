@@ -3,7 +3,7 @@
 Plugin Name: Order List
 Plugin URI: http://slc.org.ua/
 Description:Список заказов - плагин для управления списком заказов веб-магазина
-Version: 0.0.1
+Version: 1.0.0
 Author: SLC
 Author http://slc.org.ua/
 */
@@ -26,7 +26,8 @@ Author http://slc.org.ua/
 }
  
 if (!class_exists("ol_prg")){	
- class ol_prg extends ol_prg_table_class{
+ class ol_prg extends ol_prg_table_class
+ {
  
 	 var $tablename = 'ol_prg';
 	 var $pluginname = 'ol_prg';
@@ -92,7 +93,7 @@ if (!class_exists("ol_prg")){
 		
 	 }
 	 
-	 function get_select($context, $id = 0){
+	 function get_select_wrapper($context, $id = 0){
 		$orderstatement = "";
 		$filterstatement = "";
 		$joinstatement = "";
@@ -113,7 +114,7 @@ if (!class_exists("ol_prg")){
 			$joinstatement = "";
 		}			
 		
-		return parent::get_select($id, $joinstatement, $filterstatement, $orderstatement);
+		return $this->get_select($id, $joinstatement);
 	 } 	 
  }
  
