@@ -329,15 +329,13 @@ function order_list_delete_postdata($post_id)
 
     $table_name = $wpdb->prefix . "ol_items";
     $sql = 'SELECT * FROM ' . $table_name . ' WHERE slug="' . $post_type . '"';
-    $mysql_results = mysql_query($sql);
-    $mysql_result = mysql_fetch_array($mysql_results);
-    $item_id = $mysql_result['id'];
-    if (isset($item_id)) {
-        $table_name = $wpdb->prefix . "ol_item_" . $item_id;
+    $mysql_result = $wpdb->get_row($sql, ARRAY_A);
+    if (!empty($mysql_result['id'])) {
+        $table_name = $wpdb->prefix . "ol_item_" . $mysql_result['id'];
         $sql = "DELETE FROM " . $table_name . " WHERE post_id=" . $post_id;
 
-        if (!mysql_query($sql)) {
-            die('Error2: ' . mysql_error());
+        if ($wpdb->query($sql) === false) {
+            die('Error: ' . $wpdb->print_error() . "<br><br><br>SQL:<br><br>" . $sql);
         }
     }
 }
