@@ -9,7 +9,6 @@
     $table_name = $wpdb->prefix . "ol_items";
     $sql = "SELECT * FROM " . $table_name . " WHERE id=" . $item_id;
     $mysql_result = $wpdb->get_row($sql, ARRAY_A);
-
     ?>
     <h2>Экспорт импорт для <?php echo $mysql_result['title'] ?></h2>
     <div id="post-body">
@@ -248,10 +247,8 @@
                 <input name="ancestor_key" value="" type="hidden"/>
                 <input name="item_id" value="<?php echo $item_id; ?>" type="hidden"/>
                 <input name="csv_action" value="" type="hidden"/>
-
             </form>
             <?php } ?>
-
         </div>
     </div>
 </div>

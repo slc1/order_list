@@ -6,10 +6,8 @@ $sql = "SELECT * FROM " . $table_name . " WHERE id=" . $field_id;
 $mysql_result = $wpdb->get_row($sql, ARRAY_A);
 ?>
 <div class="metabox-holder has-right-sidebar">
-
     <div id="icon-options-general" class="icon32"><br/></div>
     <h2>Добавить поле</h2>
-
     <div id="post-body">
         <div id="post-body-content" class="has-sidebar-content">
             <form method="post" action="#">
@@ -159,11 +157,9 @@ $mysql_result = $wpdb->get_row($sql, ARRAY_A);
                 <input name="item_id" value="<?php echo $item_id; ?>" type="hidden"/>
                 <input name="field_id" value="<?php echo $field_id; ?>" type="hidden"/>
                 <input name="item_action" value="edit_item_field_in_base" type="hidden"/>
-                <input class="button" value="Сохранить" type="submit"/> &nbsp; <a class="button-primary"
-                                                                                  href="admin.php?page=<?php echo dirname(plugin_basename(__FILE__)); ?>/items.php&item_action=edit_item&item_id=<?php echo $item_id; ?>">Отмена</a>
+                <input class="button" value="Сохранить" type="submit"/> &nbsp;
+                <a class="button-primary" href="admin.php?page=<?php echo dirname(plugin_basename(__FILE__)); ?>/items.php&item_action=edit_item&item_id=<?php echo $item_id; ?>">Отмена</a>
             </form>
-
-
         </div>
     </div>
 </div>
