@@ -81,7 +81,12 @@
                     global $wpdb;
                     $table_name = $wpdb->prefix . "ol_params";
                     $sql = "SELECT * FROM " . $table_name . " WHERE item_id=" . $item_id . " ORDER BY id ";
-                    $mysql_results = $wpdb->get_results($sql, ARRAY_A);
+                    $mysql_results = array_merge([
+                        ['title' => __('Name'), 'slug' => 'post_title'],
+                        ['title' => __('Description'), 'slug' => 'post_content'],
+                        ['title' => __('Date'), 'slug' => 'post_date'],
+                    ],
+                        $wpdb->get_results($sql, ARRAY_A)) ;
                     $sql_array = array();
                     $i = 0;
                     $i_max = count($mysql_results);

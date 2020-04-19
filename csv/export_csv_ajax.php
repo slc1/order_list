@@ -14,18 +14,18 @@ if ($our_user_level < 7) { ?>
 
     global $wpdb;
     $table_name = $wpdb->prefix . "ol_item_" . $item_id;
+    $post_table_name = $wpdb->prefix . 'posts';
 
     $sql = "SHOW COLUMNS FROM " . $table_name;
+    $sql2 = "SHOW COLUMNS FROM " . $post_table_name;
     $our_export_fields = array();
-    $mysql_results = $wpdb->get_results($sql, ARRAY_A);
+    $mysql_results = array_merge($wpdb->get_results($sql, ARRAY_A), $wpdb->get_results($sql2, ARRAY_A));
     foreach ($mysql_results as $mysql_result) {
-        // echo '<pre>';   print_r($mysql_result);     echo '</pre><br>';
-        if ($_POST['cb_' . $mysql_result['Field']] == 'ok') $our_export_fields[$_POST['list_number_' . $mysql_result['Field']]] = $mysql_result['Field'];
+        if ($_POST['cb_' . $mysql_result['Field']] == 'ok') {
+            $our_export_fields[$_POST['list_number_' . $mysql_result['Field']]] = $mysql_result['Field'];
+        }
     }
     ksort($our_export_fields);
-//echo '<pre>';   print_r($our_export_fields);     echo '</pre><br>';    
-    //echo implode(", ", $our_export_fields);
-
 
     $csv_file = ''; // создаем переменную, в которую записываем строки
 
@@ -37,7 +37,10 @@ if ($our_user_level < 7) { ?>
     }
 
 
-    $sql = "SELECT " . implode(", ", $our_export_fields) . " FROM " . $table_name;
+    $sql = "SELECT " . implode(", ", $our_export_fields) . " FROM " . $table_name .
+        ' LEFT JOIN ' .  $post_table_name.
+        ' ON ' . $table_name. '.post_id = ' . $post_table_name . '.id';
+
     $mysql_results = $wpdb->get_results($sql, ARRAY_A);
     foreach ($mysql_results as $mysql_result) {
         foreach ($mysql_result as $my_element) {
