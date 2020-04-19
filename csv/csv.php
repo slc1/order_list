@@ -122,7 +122,7 @@ if ($item_action == 'import') {
     }
     $table_name = $wpdb->prefix . "ol_item_" . $item_id;
     if (($handle = fopen($uploadfile, "r")) !== FALSE) {
-        if ($_POST['import_field_name_enadled'] == 'ok') $csv_data = fgetcsv($handle, null, ";"); // днлаем первую холостую  итерацию, если есть заголовки полей в csv файле
+        if ($_POST['import_field_name_enabled'] == 'ok') $csv_data = fgetcsv($handle, null, ";"); // днлаем первую холостую  итерацию, если есть заголовки полей в csv файле
         while (($csv_data = fgetcsv($handle, null, ";")) !== FALSE) {
             $csv_num_items = count($csv_data);
             //echo '<pre>';   print_r($csv_data);     echo '</pre><br>';

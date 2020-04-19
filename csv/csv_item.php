@@ -22,17 +22,28 @@
                 <br/>
                 <table>
                     <tr>
-                        <td width="130"><input class="button" value="Экспорт в CSV" type="button"
-                                               onclick="csv_export();"/></td>
-                        <td width="20"><input type="checkbox" name="export_field_name_enadled" value="ok"/></td>
-                        <td>Добавить поля таблицы в файл</td>
+                        <td width="130">
+                            <input class="button" value="Экспорт в CSV" type="button"
+                                   onclick="csv_export();"/>
+                        </td>
+                        <td colspan="2">
+                            <label>
+                                <input type="checkbox" name="export_field_name_enabled" value="ok"/>
+                                Добавить поля таблицы в файл
+                            </label>
+                            &nbsp;
+                            <label>
+                                <input type="checkbox" name="add_images_to_post" value="1"/>
+                                Добавить картинки в конец строки
+                            </label>
+                        </td>
                     </tr>
                     <tr>
                         <td colspan="3"><br/><br/></td>
                     </tr>
                     <tr>
                         <td><input class="button" value="Импорт из CSV" type="button" onclick="csv_import();"/></td>
-                        <td><input type="checkbox" name="import_field_name_enadled" value="ok"/></td>
+                        <td><input type="checkbox" name="import_field_name_enabled" value="ok"/></td>
                         <td>В файле добавлены поля таблицы &nbsp; Выберите файл для импорта: <input type="file"
                                                                                                     accept="text/html"
                                                                                                     name="csv_file"
@@ -131,12 +142,18 @@
                         <th colspan="8">
                             <p>
                                 <input class="button" value="Экспорт в CSV" type="button" onclick="csv_export();"/>
+                                <label>
+                                    <input type="checkbox" name="export_field_name_enabled" value="ok"/>
+                                    Добавить поля таблицы в файл
+                                </label>
                                 &nbsp;
-                                Добавить поля таблицы в файл <input type="checkbox" name="export_field_name_enadled"
-                                                                    value="ok"/>
-                                <br/><br/>
+                                <label>
+                                    <input type="checkbox" name="add_images_to_post" value="1"/>
+                                    Добавить картинки в конец строки
+                                </label>
+                                <br><br>
                                 <input class="button" value="Импорт из CSV" type="button"/> &nbsp;
-                                В файле добавлены поля таблицы <input type="checkbox" name="import_field_name_enadled"
+                                В файле добавлены поля таблицы <input type="checkbox" name="import_field_name_enabled"
                                                                       value="ok"/>
                             </p>
                         </th>

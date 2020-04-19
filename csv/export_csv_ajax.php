@@ -9,7 +9,8 @@ if ($our_user_level < 7) { ?>
 <?php } else {
 
     $item_id = (isset($_REQUEST["item_id"]) ? $_REQUEST["item_id"] : "");
-    $export_field_name_enadled = (isset($_REQUEST["export_field_name_enadled"]) ? $_REQUEST["export_field_name_enadled"] : "");
+    $export_field_name_enabled = (isset($_REQUEST["export_field_name_enabled"]) ? $_REQUEST["export_field_name_enabled"] : "");
+    $add_images_to_post = (isset($_REQUEST["add_images_to_post"]) ? $_REQUEST["add_images_to_post"] : false);
 
 
     global $wpdb;
@@ -26,12 +27,17 @@ if ($our_user_level < 7) { ?>
         }
     }
     ksort($our_export_fields);
-
+    if ($add_images_to_post) {
+        $our_export_fields[] = 'post_id';
+    }
     $csv_file = ''; // создаем переменную, в которую записываем строки
 
-    if ($export_field_name_enadled == "ok") { // если задано, добавляем имена полей таблицы
+    if ($export_field_name_enabled == "ok") { // если задано, добавляем имена полей таблицы
         foreach ($our_export_fields as $my_element) {
             $csv_file .= $my_element . ";";
+        }
+        if ($add_images_to_post) {
+            $csv_file .= "image_url;";
         }
         $csv_file .= "\r\n";
     }
@@ -45,6 +51,10 @@ if ($our_user_level < 7) { ?>
     foreach ($mysql_results as $mysql_result) {
         foreach ($mysql_result as $my_element) {
             $csv_file .= iconv("UTF-8", "windows-1251", str_replace(array(';', "\r", "\n"), '', $my_element)) . ";";
+        }
+        if ($add_images_to_post && !empty($mysql_result['post_id'])) {
+            $image_url = get_the_post_thumbnail_url($mysql_result['post_id']);
+            $csv_file .= $image_url . ';';
         }
         $csv_file .= "\r\n";
     }
