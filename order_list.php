@@ -8,17 +8,20 @@ Author: SLC
 Author http://slc.org.ua/
 */
 
-
+define( 'ORDER_LIST_PLUGIN_FILE',  __FILE__ );
 define( 'ORDER_LIST_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'ORDER_LIST_PLUGIN_SLUG', 'order-list');
 
 add_option('currency_course', 8);
-if (!isset($pluginprefix))
+if (!isset($pluginprefix)) {
     $pluginprefix = "";
+}
+
 $pluginprefix .= "order_list/";
 $plugintitle = "Order list";
 
-include("ol_prg/ol_prg.php");
+require_once("ol_prg/ol_prg.php");
+require_once ('vendor\autoload.php');
 
 function order_list()
 {
@@ -135,6 +138,7 @@ function order_list_create_submenu()
             add_submenu_page(ORDER_LIST_PLUGIN_SLUG, "Настройки корзины", "Корзина", 'edit_posts', dirname(plugin_basename(__FILE__)) . '/delivery/delivery.php');
             add_submenu_page(ORDER_LIST_PLUGIN_SLUG, "Параметры экспорта импорта через CSV", "Экспорт-импорт", 'edit_posts', dirname(plugin_basename(__FILE__)) . '/csv/csv.php');
             add_submenu_page(ORDER_LIST_PLUGIN_SLUG, "Курс валют", "Курс валют", 'edit_posts', dirname(plugin_basename(__FILE__)) . '/currency/currency.php');
+            add_submenu_page(ORDER_LIST_PLUGIN_SLUG, __("Woocommerce Import"), __("Woo Import"), 'edit_posts', dirname(plugin_basename(__FILE__)) . '/wo-import/index.php');
         }
 
     }

@@ -1,0 +1,14 @@
+{
+  "name": "slc/shop",
+  "description": "Parser different data",
+  "keywords": [
+    "parser",
+    "csv",
+    "json"
+  ],
+  "autoload": {
+    "psr-4": {
+      "SlcShop\\": "src/"
+    }
+  }
+}
