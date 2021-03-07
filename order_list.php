@@ -21,7 +21,7 @@ $pluginprefix .= "order_list/";
 $plugintitle = "Order list";
 
 require_once("ol_prg/ol_prg.php");
-require_once ('vendor\autoload.php');
+require_once ('vendor/autoload.php');
 
 function order_list()
 {
