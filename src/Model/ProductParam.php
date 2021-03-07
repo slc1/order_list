@@ -10,22 +10,27 @@ class ProductParam
 
     public $data;
 
-    public function __construct($id = null, Array $data = [])
+    public function __construct($idOrSlug = null, Array $data = [])
     {
-        if (empty($id) && empty($data)) {
+        if (empty($idOrSlug) && empty($data)) {
             throw  new \Exception('Not enough params in ProductParam constructor');
         }
 
-        global  $wpdb;
-        if (!empty($id)) {
-//            $this->id = $id;
-//            $table_name = $wpdb->prefix . "ol_items";
-//            $sql = "SELECT * FROM " . $table_name . " WHERE id=" . $this->id;
-//            $this->data = $wpdb->get_row($sql, ARRAY_A);
+
+        if (!empty($idOrSlug)) {
+            global $wpdb;
+            $table_name = $wpdb->prefix . "ol_params";
+            if (is_int($idOrSlug)) {
+                $sql = "SELECT * FROM " . $table_name . " WHERE id=" . $idOrSlug;
+            } else {
+                $sql = "SELECT * FROM " . $table_name . " WHERE slug='" . $idOrSlug . "'";
+            }
+            $this->data = $wpdb->get_row($sql, ARRAY_A);
         } else {
             $this->data = $data;
-            $this->id = $data['id'];
         }
+
+        $this->id = $data['id'];
     }
 
     public function getId()

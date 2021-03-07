@@ -146,6 +146,8 @@ function order_list_create_submenu()
 
 add_action('admin_menu', 'order_list_create_submenu');
 
+new \SlcShop\WooImport\Ajax();
+
 include('items_post_types.php');
 include('items_custom_box.php');
 
