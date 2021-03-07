@@ -2,16 +2,17 @@
 
 namespace SlcShop\WooImport;
 
-if ( ! class_exists( 'WC_Product_CSV_Importer_Controller' ) ) {
+if (!class_exists('WC_Product_CSV_Importer_Controller')) {
     return;
 }
 
 class Controller extends \WC_Product_CSV_Importer_Controller
 {
-    public function theMappingSelect($param, $mapped_value = '')
+    public function theMappingSelect($param, $productGroup, $mapped_value = '')
     {
         ?>
-        <select name="map_to[<?php echo $param ?>]" class="woo-mapping-select" data-param="<?php echo $param ?>">
+        <select name="map_to[<?php echo $param ?>]" class="woo-mapping-select <?php echo $productGroup ?>"
+                data-param="<?php echo $param ?>">
             <option value=""><?php esc_html_e('Do not import', 'woocommerce'); ?></option>
             <option value="">--------------</option>
             <?php foreach ($this->advancedMappingOptions($mapped_value) as $key => $value) : ?>
@@ -32,9 +33,22 @@ class Controller extends \WC_Product_CSV_Importer_Controller
     protected function advancedMappingOptions($mapped_value)
     {
         $options = $this->get_mapping_options($mapped_value);
-        $options['not_stock_status'] = __('not') . ' ' . __( 'In stock?', 'woocommerce' );
+        $options['not_stock_status'] = __('not') . ' ' . __('In stock?', 'woocommerce');
         $options['text_attribute'] = __('Text attribute');
 
         return $options;
+    }
+
+    public function theTaxonomySelect($productGroup, $mapped_value = '')
+    {
+        ?>
+        <select name="woo_taxonomy[<?php echo $productGroup ?>]"
+                class="woo-mapping-select <?php echo $productGroup ?>" data-param="product_cat">
+            <option value=""><?php esc_html_e('Do not import', 'woocommerce'); ?></option>
+            <?php foreach (get_taxonomies([], 'object') as $key => $value) : ?>
+                <option value="<?php echo esc_attr($value->name); ?>" <?php selected($mapped_value, $value->name); ?>><?php echo esc_html($value->label); ?></option>
+            <?php endforeach ?>
+        </select>
+        <?php
     }
 }

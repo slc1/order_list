@@ -16,12 +16,13 @@ if (!class_exists('\\WooCommerce')) {
         $productGroup = new \SlcShop\Model\ProductGroup(null, $productGroupData);
         echo $productGroup->getTitle() . ' - ' . $productGroup->getSlug() . '<br>'; ?>
         <br>
+        <div class="">Product cat: <?php echo $wooImport->theTaxonomySelect($productGroup->getSlug());?></div>
         <br>
         <div class="">Products params:</div>
         <?php
         foreach ($productGroup->paramsData as $paramData) {
             $productParam = new \SlcShop\Model\ProductParam(null, $paramData);
-            $wooImport->theMappingSelect($productParam->getSlug());
+            $wooImport->theMappingSelect($productParam->getSlug(), $productGroup->getSlug());
             echo $productParam->getTitle() . ' - ' . $productParam->getSlug() . '<br>';
         }
     }
@@ -66,8 +67,13 @@ if (!class_exists('\\WooCommerce')) {
 
         jQuery('#start-import-button').on('click', function () {
             var wooMapping = {};
-            jQuery('.woo-mapping-select').each(function () {
-                wooMapping[jQuery(this).data('param')] = jQuery(this).val();
+            jQuery('.woo-mapping-select.<?php echo $productGroup->getSlug()?>').each(function () {
+                var param = jQuery(this).data('param');
+                if (param === 'product_cat' && jQuery(this).val()) {
+                    wooMapping[jQuery(this).val()] = param;
+                } else {
+                    wooMapping[param] = jQuery(this).val();
+                }
             });
             console.log('wooMapping', wooMapping);
             jQuery('#import-results').append('<div class="import-result-item">Import started...</div>');

@@ -77,6 +77,9 @@ class WooProductBuilder
                 case 'not_stock_status':
                     $this->notStockStatus($paramKey);
                     break;
+                case 'product_cat':
+                    $this->productCat($paramKey);
+                    break;
             }
         }
 
@@ -150,5 +153,61 @@ class WooProductBuilder
         }
 
         $this->wooProduct->set_stock_status($status);
+    }
+
+    protected function productCat($paramKey)
+    {
+        $terms = wp_get_object_terms($this->product->id ,$paramKey);
+        $productCatTerms = [];
+        foreach ($terms as $term) {
+            $parents = get_term_parents_list($term->term_id, $paramKey, [
+                'format'    => 'name',
+                'separator' => ' > ',
+                'link'      => false,
+                'inclusive' => true,
+            ]);
+
+            $parents = substr($parents, 0, strlen($parents) - 3);
+            $productCatTerms[] = $this->parse_categories_field($parents);
+        }
+        wp_set_object_terms($this->wooProduct->get_id(), $productCatTerms, 'product_cat');
+    }
+
+    public function parse_categories_field($row_term)
+    {
+
+        $parent = null;
+        $_terms = array_map('trim', explode('>', $row_term));
+        $total = count($_terms);
+
+        foreach ($_terms as $index => $_term) {
+            // Don't allow users without capabilities to create new categories.
+            if (!current_user_can('manage_product_terms')) {
+                break;
+            }
+
+            $term = wp_insert_term($_term, 'product_cat', array('parent' => intval($parent)));
+
+            if (is_wp_error($term)) {
+                if ($term->get_error_code() === 'term_exists') {
+                    // When term exists, error data should contain existing term id.
+                    $term_id = $term->get_error_data();
+                } else {
+                    break; // We cannot continue on any other error.
+                }
+            } else {
+                // New term.
+                $term_id = $term['term_id'];
+            }
+
+            // Only requires assign the last category.
+            if ((1 + $index) === $total) {
+                return $term_id;
+            } else {
+                // Store parent to be able to insert or query categories based in parent ID.
+                $parent = $term_id;
+            }
+        }
+
     }
 }
