@@ -79,6 +79,20 @@ class WooProductBuilder
                     break;
             }
         }
+
+        $imageIds = get_posts([
+            'post_parent'    => $this->product->id,
+            'post_type'      => 'attachment',
+            'numberposts'    => -1,
+            'post_status'    => 'any',
+            'post_mime_type' => 'image',
+            'fields' => 'ids',
+             'exclude' => [get_post_thumbnail_id($this->product->id)]
+        ]);
+
+
+        $this->wooProduct->set_gallery_image_ids($imageIds);
+
         $this->wooProduct->save();
 
         return $this->wooProduct;
