@@ -18,6 +18,8 @@ class Ajax
         $wooMapping = $_POST['wooMapping'];
         $productIndex = (int)$_POST['productIndex'];
 
+        update_option('ol_woo_mapping_' . $postType, $wooMapping);
+
         $productBuilder = new WooProductBuilder($postType, $productIndex);
         if (!$productBuilder->product) {
             wp_send_json_success([

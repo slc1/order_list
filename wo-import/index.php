@@ -9,6 +9,7 @@
     }
     $wooImport = new \SlcShop\WooImport\Controller();
     ?>
+    <script src="<?php echo plugin_dir_url(ORDER_LIST_PLUGIN_FILE)  ?>/js/woo-import.js"></script>
     <h2 style="color: red;">Please create database backup previously !!!</h2>
     <div>List of product groups:</div>
     <?php
@@ -31,6 +32,10 @@
             <button class="start-import-button button-primary" data-post-type="<?php echo $productGroup->getSlug(); ?>">
                 Start import <?php echo $productGroup->getTitle(); ?>
             </button>
+            <button class="previous-options-button button-primary" data-post-type="<?php echo $productGroup->getSlug(); ?>">
+                Set previous import options
+            </button>
+            <?php $wooImport->thePreviousOptions($productGroup->getSlug()) ?>
         </div>
     <?php
     }
@@ -38,55 +43,5 @@
 
     <div id="import-results"></div>
 </div>
-<script>
-    var productImport = function (postType, wooMapping, productIndex) {
-        if (!productIndex) {
-            productIndex = 0;
-        }
-        jQuery.post(ajaxurl, {
-            action: 'order_list_import_product',
-            postType: postType,
-            wooMapping: wooMapping,
-            productIndex: productIndex,
-        },
-        'json')
-        .done(function (data) {
-            var resultMessage = data.data.message ?? 'Something wrong';
-            console.log(resultMessage, data);
-            if (resultMessage === 'Something wrong') {
-                return;
-            }
-            if (resultMessage === 'product imported') {
-                jQuery('#import-results').append('<div class="import-result-item">#' + data.data.id + ' ' + data.data.title + ' ... done!</div>');
-                productImport(postType, wooMapping, data.data.productIndex);
-            }
-            if (resultMessage === 'import finished') {
-                jQuery('#import-results').append('<div class="import-result-item">Import finished</div>');
-            }
-
-        })
-        .fail(function (data) {
-            console.log('import failed', data)
-        })
-        ;
-    };
-
-    jQuery('.start-import-button').on('click', function () {
-        var wooMapping = {};
-        var postType = jQuery(this).data('post-type');
-        jQuery('.woo-mapping-select.' + postType).each(function () {
-            var param = jQuery(this).data('param');
-            if ((param === 'product_cat' || param === 'brand_cat' ) && jQuery(this).val()) {
-                wooMapping[jQuery(this).val()] = param;
-            } else {
-                wooMapping[param] = jQuery(this).val();
-            }
-        });
-        console.log('wooMapping', wooMapping);
-        jQuery('#import-results').append('<div class="import-result-item">Import started...</div>');
-        productImport(jQuery(this).data('post-type'), wooMapping);
-    });
-
-</script>
 <?php }
 

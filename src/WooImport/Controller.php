@@ -69,4 +69,14 @@ class Controller extends \WC_Product_CSV_Importer_Controller
         </select>
         <?php
     }
+
+    public function thePreviousOptions($postType)
+    {
+        $options = get_option('ol_woo_mapping_' . $postType, []);
+        echo '<script>window.ol_previous_options_' . $postType . ' = {';
+        foreach ($options as $key => $item) {
+            echo '"' . $key. '": "' .  $item .'",';
+        }
+        echo '};</script>';
+    }
 }
