@@ -12,7 +12,7 @@ class WooProductBuilder
      */
     public $product;
     /**
-     * @var \WC_Product_Simple
+     * @var WooProduct
      */
     protected $wooProduct;
     /**
@@ -33,7 +33,7 @@ class WooProductBuilder
                 wp_update_post($this->product->post);
             }
 
-            $this->wooProduct = new \WC_Product_Simple($this->product->id);
+            $this->wooProduct = new WooProduct($this->product->id);
         }
     }
 
@@ -65,6 +65,12 @@ class WooProductBuilder
                 case 'regular_price':
                     $this->regularPrice($paramKey);
                     break;
+                case 'old_price':
+                    $this->oldPrice($paramKey);
+                    break;
+                case 'sku':
+                    $this->setSku($paramKey);
+                    break;
                 case 'attributes:name':
                     $this->attributesName($paramKey);
                     break;
@@ -79,6 +85,12 @@ class WooProductBuilder
                     break;
                 case 'product_cat':
                     $this->productCat($paramKey);
+                    break;
+                case 'brand_cat':
+                    $this->brandCat($paramKey);
+                    break;
+                case 'custom_rainbow_stock':
+                    $this->rainbowStock($paramKey);
                     break;
             }
         }
@@ -103,7 +115,29 @@ class WooProductBuilder
 
     protected function regularPrice($paramKey)
     {
+        if (empty($this->product->params[$paramKey])) {
+            return;
+        }
+        if ($this->wooProduct->hasOldPrice) {
+            $this->wooProduct->set_sale_price($this->product->params[$paramKey]);
+        } else {
+            $this->wooProduct->set_regular_price($this->product->params[$paramKey]);
+        }
+    }
+
+    protected function oldPrice($paramKey)
+    {
+        if (empty($this->product->params[$paramKey])) {
+            return;
+        }
+        $this->wooProduct->hasOldPrice = true;
+        $this->wooProduct->set_sale_price($this->wooProduct->get_price());
         $this->wooProduct->set_regular_price($this->product->params[$paramKey]);
+    }
+
+    public function setSku($paramKey)
+    {
+        $this->wooProduct->set_sku($this->product->params[$paramKey]);
     }
 
     protected function attributesName($paramKey, $type = 'select')
@@ -123,16 +157,18 @@ class WooProductBuilder
         }
 
         $attName = 'pa_' . $paramKey;
-        wp_set_object_terms($this->wooProduct->get_id(), $this->product->params[$paramKey], $attName, true);
-        $attData = [$attName =>
-            [
-                'name' => $attName,
-                'value' => $this->product->params[$paramKey],
-                'is_visible' => '1',
-                'is_taxonomy' => '1'
-            ]
-        ];
-        update_post_meta($this->wooProduct->get_id(), '_product_attributes', $attData);
+        if (!empty($this->product->params[$paramKey]) && $this->product->params[$paramKey] !== '0') {
+            wp_set_object_terms($this->wooProduct->get_id(), $this->product->params[$paramKey], $attName, true);
+            $attData = [$attName =>
+                [
+                    'name' => $attName,
+                    'value' => $this->product->params[$paramKey],
+                    'is_visible' => '1',
+                    'is_taxonomy' => '1'
+                ]
+            ];
+            update_post_meta($this->wooProduct->get_id(), '_product_attributes', $attData);
+        }
     }
 
     protected function stockStatus($paramKey)
@@ -143,6 +179,69 @@ class WooProductBuilder
         }
 
         $this->wooProduct->set_stock_status($status);
+    }
+
+    protected function rainbowStock($paramKey)
+    {
+        $status = 'outofstock';
+        $backorders = 'notify';
+        $quantity = 0;
+        switch ($this->product->params[$paramKey]) {
+            case '0':
+                $status = 'outofstock';
+                $backorders = 'notify';
+                $quantity = 0;
+                break;
+            case 'Есть в наличии':
+                $status = 'instock';
+                $backorders = 'yes';
+                $quantity = 2;
+                break;
+            case 'Нет в наличии':
+                $status = 'onbackorder';
+                $backorders = 'yes';
+                $quantity = 0;
+                break;
+            case 'Товар заканчивается':
+                $status = 'instock';
+                $backorders = 'yes';
+                $quantity = 1;
+                break;
+            case 'Последний экземпляр':
+                $status = 'instock';
+                $backorders = 'yes';
+                $quantity = 1;
+                break;
+            case 'Уточняйте наличие':
+                $status = 'onbackorder';
+                $backorders = 'notify';
+                $quantity = 0;
+                break;
+            case 'Под заказ':
+                $status = 'onbackorder';
+                $backorders = 'yes';
+                $quantity = 0;
+                break;
+            case 'Под заказ 1-2 дня,':
+                $status = 'onbackorder';
+                $backorders = 'yes';
+                $quantity = 0;
+                break;
+            case 'Снято с производства':
+                $status = 'outofstock';
+                $backorders = 'no';
+                $quantity = 0;
+                break;
+            case 'Ожидается':
+                $status = 'onbackorder';
+                $backorders = 'yes';
+                $quantity = 0;
+                break;
+        }
+
+        $this->wooProduct->set_stock_status($status);
+        $this->wooProduct->set_backorders($backorders);
+        $this->wooProduct->set_stock_quantity($quantity);
     }
 
     protected function notStockStatus($paramKey)
@@ -171,6 +270,11 @@ class WooProductBuilder
             $productCatTerms[] = $this->parse_categories_field($parents);
         }
         wp_set_object_terms($this->wooProduct->get_id(), $productCatTerms, 'product_cat');
+    }
+
+    protected function brandCat($paramKey)
+    {
+        // TODO
     }
 
     public function parse_categories_field($row_term)
