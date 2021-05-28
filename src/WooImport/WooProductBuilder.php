@@ -22,10 +22,13 @@ class WooProductBuilder
 
     protected $importer;
 
+    protected $postType;
+
     public function __construct($postType, $productIndex)
     {
         $this->importer = new ProductImporter('');
-        $this->product = $this->createProduct($postType, $productIndex);
+        $this->postType = $postType;
+        $this->product = $this->createProduct($productIndex);
         if ($this->product) {
             $this->productIndex = $productIndex;
 
@@ -40,12 +43,12 @@ class WooProductBuilder
         }
     }
 
-    public function createProduct($postType, $productIndex)
+    public function createProduct($productIndex)
     {
         $productPosts = get_posts([
             'posts_per_page' => 1,
             'offset' => $productIndex,
-            'post_type' => $postType,
+            'post_type' => $this->postType,
         ]);
 
         if (empty($productPosts[0])) {
@@ -75,7 +78,7 @@ class WooProductBuilder
                     $this->setSku($paramKey);
                     break;
                 case 'attributes:name':
-                    //$this->attributesName($paramKey);
+                    $this->attributesName($paramKey);
                     break;
                 case 'text_attribute':
                     $this->attributesName($paramKey, 'text');
@@ -98,28 +101,10 @@ class WooProductBuilder
             }
         }
 
-        $imageIds = get_posts([
-            'post_parent'    => $this->product->id,
-            'post_type'      => 'attachment',
-            'numberposts'    => -1,
-            'post_status'    => 'any',
-            'post_mime_type' => 'image',
-            'fields' => 'ids',
-             'exclude' => [get_post_thumbnail_id($this->product->id)]
-        ]);
-
-
-        $this->wooProduct->set_gallery_image_ids($imageIds);
-
-        $price = $this->wooProduct->get_sale_price();
-        if (empty($price)) {
-            $price = $this->wooProduct->get_regular_price();
-        }
-        $this->wooProduct->set_price($price);
-
+        $this->setImages();
+        $price = $this->setPrice();
         $this->wooProduct->save();
-
-        //$priceHtml = $this->wooProduct->get_price_html();
+        $this->saveAttributes();
         update_post_meta($this->wooProduct->get_id(), '_price', $price);
 
         return $this->wooProduct;
@@ -154,32 +139,36 @@ class WooProductBuilder
 
     protected function attributesName($paramKey, $type = 'select')
     {
-        $attributes = wc_get_attribute_taxonomies($paramKey);
-        $slugs = wp_list_pluck($attributes, 'attribute_name');
-        if (!in_array($paramKey, $slugs)) {
-            $productParam = new \SlcShop\Model\ProductParam($paramKey);
-            $args = array(
-                'slug' => $paramKey,
-                'name' => $productParam->getTitle(),
-                'type' => $type,
-                'orderby' => 'menu_order',
-                'has_archives' => false,
-            );
-            wc_create_attribute($args);
+        if ($type === 'select') {
+            $attributes = wc_get_attribute_taxonomies($paramKey);
+            $slugs = wp_list_pluck($attributes, 'attribute_name');
+            if (!in_array($paramKey, $slugs)) {
+                $productParam = new \SlcShop\Model\ProductParam($paramKey);
+                $args = array(
+                    'slug' => $paramKey,
+                    'name' => $productParam->getTitle(),
+                    'type' => $type,
+                    'orderby' => 'menu_order',
+                    'has_archives' => false,
+                );
+                $attributeId = wc_create_attribute($args);
+            }
         }
 
-        $attName = 'pa_' . $paramKey;
+        $name = $attName = 'pa_' . $paramKey;
+        if ($type !== 'select') {
+            if (empty($productParam)) {
+                $productParam = new \SlcShop\Model\ProductParam($paramKey);
+            }
+            $name = $productParam->getTitle();
+        }
         if (!empty($this->product->params[$paramKey]) && $this->product->params[$paramKey] !== '0') {
-            wp_set_object_terms($this->wooProduct->get_id(), $this->product->params[$paramKey], $attName, true);
-            $attData = [$attName =>
-                [
-                    'name' => $attName,
-                    'value' => $this->product->params[$paramKey],
-                    'is_visible' => '1',
-                    'is_taxonomy' => '1'
-                ]
+            $this->wooProduct->attributesData[$attName] = [
+                'name' => $name,
+                'value' => $this->product->params[$paramKey],
+                'is_visible' => '1',
+                'is_taxonomy' => ($type === 'select'),
             ];
-            update_post_meta($this->wooProduct->get_id(), '_product_attributes', $attData);
         }
     }
 
@@ -332,6 +321,13 @@ class WooProductBuilder
                 // set image from z_taxonomy_image
                 if (function_exists('z_taxonomy_image_url') && $taxonomySlug) {
                     $term = get_term_by('name', $_term, $taxonomySlug);
+
+                    if (!empty($term->description)) {
+                        wp_update_term( $term_id, 'product_cat', [
+                            'description' => $term->description,
+                        ] );
+                    }
+
                     if (!empty($term->term_id) && z_taxonomy_image_url($term->term_id)) {
                         $taxonomy_image_url = get_option('z_taxonomy_image' . $term->term_id);
                         if (!empty($taxonomy_image_url)) {
@@ -354,6 +350,42 @@ class WooProductBuilder
                 $parent = $term_id;
             }
         }
-
     }
+
+    protected function setImages()
+    {
+        $imageIds = get_posts([
+            'post_parent'    => $this->product->id,
+            'post_type'      => 'attachment',
+            'numberposts'    => -1,
+            'post_status'    => 'any',
+            'post_mime_type' => 'image',
+            'fields' => 'ids',
+            'exclude' => [get_post_thumbnail_id($this->product->id)]
+        ]);
+
+        $this->wooProduct->set_gallery_image_ids($imageIds);
+    }
+
+    protected function setPrice()
+    {
+        $price = $this->wooProduct->get_sale_price();
+        if (empty($price)) {
+            $price = $this->wooProduct->get_regular_price();
+        }
+        $this->wooProduct->set_price($price);
+
+        return $price;
+    }
+
+    public function saveAttributes()
+    {
+        if (!empty($this->wooProduct->attributesData)) {
+            update_post_meta($this->wooProduct->get_id(), '_product_attributes', $this->wooProduct->attributesData);
+            foreach ($this->wooProduct->attributesData as $attName => $attItem) {
+                wp_set_object_terms($this->wooProduct->get_id(), $attItem['value'], $attName, true);
+            }
+        }
+    }
+
 }

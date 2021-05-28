@@ -110,4 +110,13 @@ class ProductGroup
 
         wp_dropdown_categories($cat_args);
     }
+
+    public static function getIdBySlug($slug)
+    {
+        global  $wpdb;
+        $table_name = $wpdb->prefix . "ol_items";
+        $sql = $wpdb->prepare("SELECT id FROM " . $table_name . " WHERE slug='%s'" , $slug);
+
+        return $wpdb->get_var($sql);
+    }
 }

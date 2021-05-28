@@ -30,7 +30,7 @@ class ProductParam
             $this->data = $data;
         }
 
-        $this->id = $data['id'];
+        $this->id = $this->data['id'];
     }
 
     public function getId()
