@@ -263,10 +263,15 @@ class WooProductBuilder
 
     protected function productCat($paramKey)
     {
-        $terms = wp_get_object_terms($this->product->id ,$paramKey);
+        $this->processTerms($paramKey, 'product_cat');
+    }
+
+    protected function processTerms($sourceTaxonomySlug, $destinationTaxonomySlug)
+    {
+        $terms = wp_get_object_terms($this->product->id ,$sourceTaxonomySlug);
         $patentIds = [];
         foreach ($terms as $key => $term) {
-            $patentIds = array_merge($patentIds, get_ancestors($term->term_id, $paramKey));
+            $patentIds = array_merge($patentIds, get_ancestors($term->term_id, $sourceTaxonomySlug));
         }
         foreach ($terms as $key => $term) {
             if (in_array($term->term_id, $patentIds)) {
@@ -275,7 +280,7 @@ class WooProductBuilder
         }
         $productCatTerms = [];
         foreach ($terms as $term) {
-            $parents = get_term_parents_list($term->term_id, $paramKey, [
+            $parents = get_term_parents_list($term->term_id, $sourceTaxonomySlug, [
                 'format'    => 'name',
                 'separator' => ' > ',
                 'link'      => false,
@@ -283,17 +288,20 @@ class WooProductBuilder
             ]);
 
             $parents = substr($parents, 0, strlen($parents) - 3);
-            $productCatTerms[] = $this->parse_categories_field($parents, $paramKey);
+            $productCatTerms[] = $this->parse_categories_field($parents, $sourceTaxonomySlug, $destinationTaxonomySlug);
         }
-        wp_set_object_terms($this->wooProduct->get_id(), $productCatTerms, 'product_cat');
+        wp_set_object_terms($this->wooProduct->get_id(), $productCatTerms, $destinationTaxonomySlug);
     }
 
     protected function brandCat($paramKey)
     {
-        // TODO
+        if (class_exists('Slc\WooTaxonomies\ProductBrand')) {
+            $brandTaxonomy = new \Slc\WooTaxonomies\ProductBrand();
+            $this->processTerms($paramKey, $brandTaxonomy->slug);
+        }
     }
 
-    public function parse_categories_field($row_term, $taxonomySlug = null)
+    public function parse_categories_field($row_term, $taxonomySlug = null, $destinationTaxonomySlug = 'product_cat')
     {
 
         $parent = null;
@@ -306,7 +314,7 @@ class WooProductBuilder
                 break;
             }
 
-            $term = wp_insert_term($_term, 'product_cat', array('parent' => intval($parent)));
+            $term = wp_insert_term($_term, $destinationTaxonomySlug, array('parent' => intval($parent)));
 
             if (is_wp_error($term)) {
                 if ($term->get_error_code() === 'term_exists') {
@@ -323,7 +331,7 @@ class WooProductBuilder
                     $term = get_term_by('name', $_term, $taxonomySlug);
 
                     if (!empty($term->description)) {
-                        wp_update_term( $term_id, 'product_cat', [
+                        wp_update_term( $term_id, $destinationTaxonomySlug, [
                             'description' => $term->description,
                         ] );
                     }
@@ -386,6 +394,19 @@ class WooProductBuilder
                 wp_set_object_terms($this->wooProduct->get_id(), $attItem['value'], $attName, true);
             }
         }
+    }
+
+    public function progress()
+    {
+        if ($this->postType === $this->wooPostType) {
+            return 'Not available';
+        }
+
+        $num1 = wp_count_posts($this->postType)->publish;
+        $num2 = wp_count_posts($this->wooPostType)->publish;
+        $result = round(($num2 / ($num2 + $num1))  * 100, 2);
+
+        return $result;
     }
 
 }

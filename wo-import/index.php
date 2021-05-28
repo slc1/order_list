@@ -29,6 +29,7 @@
             echo $productParam->getTitle() . ' - ' . $productParam->getSlug() . '<br>';
         } ?>
         <div class="submit">
+
             <button class="start-import-button button-primary" data-post-type="<?php echo $productGroup->getSlug(); ?>">
                 Start import <?php echo $productGroup->getTitle(); ?>
             </button>
@@ -36,6 +37,9 @@
                 Set previous import options
             </button>
             <?php $wooImport->thePreviousOptions($productGroup->getSlug()) ?>
+            <label>Notyfy per:</label>
+            <input type="number" class="notify_pet_item <?php echo $productGroup->getSlug(); ?>" name="notify_pet_item" value="1" style="width: 70px">
+
         </div>
     <?php
     }

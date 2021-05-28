@@ -1,12 +1,16 @@
-var productImport = function (postType, wooMapping, productIndex) {
+var productImport = function (postType, wooMapping, productIndex, notifyPerItem) {
     if (!productIndex) {
         productIndex = 0;
+    }
+    if (!notifyPerItem) {
+        notifyPerItem = 1;
     }
     jQuery.post(ajaxurl, {
         action: 'order_list_import_product',
         postType: postType,
         wooMapping: wooMapping,
         productIndex: productIndex,
+        notifyPerItem: notifyPerItem,
     },
     'json')
     .done(function (data) {
@@ -16,8 +20,10 @@ var productImport = function (postType, wooMapping, productIndex) {
             return;
         }
         if (resultMessage === 'product imported') {
-            jQuery('#import-results').append('<div class="import-result-item">#' + data.data.id + ' ' + data.data.title + ' ... done!</div>');
-            productImport(postType, wooMapping, data.data.productIndex);
+            var progress = data.data.progress + '%';
+            jQuery('#import-results').append('<div class="import-result-item">Done ' + progress + '. Last item #' + data.data.id + ' ' + data.data.title + '</div>');
+            jQuery('#import-results .progress_bar .meter span').css('width', progress).html(progress);
+            productImport(postType, wooMapping, data.data.productIndex, notifyPerItem);
         }
         if (resultMessage === 'import finished') {
             jQuery('#import-results').append('<div class="import-result-item">Import finished</div>');
@@ -42,8 +48,8 @@ jQuery(document).ready(function () {
             }
         });
         console.log('wooMapping', wooMapping);
-        jQuery('#import-results').append('<div class="import-result-item">Import started...</div>');
-        productImport(jQuery(this).data('post-type'), wooMapping);
+        jQuery('#import-results').append('<div class="import-result-item">Import started...<div class="progress_bar"><div class="meter red"><span style="width: 0%">0%</span></div></div></div>');
+        productImport(postType, wooMapping, 0, jQuery('.notify_pet_item.' + postType).val());
     });
 
     jQuery('.previous-options-button').on('click', function () {
