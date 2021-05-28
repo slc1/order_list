@@ -227,7 +227,7 @@ function order_list_save_postdata($post_id)
 {
 
     // First we need to check if the current user is authorised to do this action.
-    if ('page' == $_POST['post_type']) {
+    if (!empty( $_POST['post_type']) && 'page' === $_POST['post_type']) {
         if (!current_user_can('edit_page', $post_id))
             return;
     } else {

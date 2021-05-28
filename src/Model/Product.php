@@ -29,8 +29,8 @@ class Product
         $this->id = $this->post->ID;
 
         global $wpdb;
-        $this->productGroupId = $wpdb->get_row($wpdb->prepare("SELECT * FROM " . $wpdb->prefix . "ol_items  WHERE slug='" . $this->post->post_type . "'"), ARRAY_A)['id'];
-        $this->params = $wpdb->get_row($wpdb->prepare( "SELECT * FROM " . $wpdb->prefix . "ol_item_" . $this->productGroupId . " WHERE post_id=" . $this->id), ARRAY_A);
+        $this->productGroupId = $wpdb->get_row($wpdb->prepare("SELECT * FROM " . $wpdb->prefix . "ol_items  WHERE slug='%s'", $this->post->post_type), ARRAY_A)['id'];
+        $this->params = $wpdb->get_row($wpdb->prepare( "SELECT * FROM " . $wpdb->prefix . "ol_item_" . $this->productGroupId . " WHERE post_id=%d", $this->id), ARRAY_A);
     }
 
     public function getTitle()

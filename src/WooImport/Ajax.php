@@ -38,6 +38,7 @@ class Ajax
             'title' => $productBuilder->product->getTitle(),
             'id' => $productBuilder->product->id,
             'params' => $productBuilder->product->params,
+            'product' => $wooProduct,
         ]);
     }
 

@@ -20,8 +20,11 @@ class WooProductBuilder
      */
     protected $productIndex;
 
+    protected $importer;
+
     public function __construct($postType, $productIndex)
     {
+        $this->importer = new ProductImporter('');
         $this->product = $this->createProduct($postType, $productIndex);
         if ($this->product) {
             $this->productIndex = $productIndex;
@@ -72,7 +75,7 @@ class WooProductBuilder
                     $this->setSku($paramKey);
                     break;
                 case 'attributes:name':
-                    $this->attributesName($paramKey);
+                    //$this->attributesName($paramKey);
                     break;
                 case 'text_attribute':
                     $this->attributesName($paramKey, 'text');
@@ -108,7 +111,16 @@ class WooProductBuilder
 
         $this->wooProduct->set_gallery_image_ids($imageIds);
 
+        $price = $this->wooProduct->get_sale_price();
+        if (empty($price)) {
+            $price = $this->wooProduct->get_regular_price();
+        }
+        $this->wooProduct->set_price($price);
+
         $this->wooProduct->save();
+
+        //$priceHtml = $this->wooProduct->get_price_html();
+        update_post_meta($this->wooProduct->get_id(), '_price', $price);
 
         return $this->wooProduct;
     }
@@ -119,20 +131,20 @@ class WooProductBuilder
             return;
         }
         if ($this->wooProduct->hasOldPrice) {
-            $this->wooProduct->set_sale_price($this->product->params[$paramKey]);
+            $this->wooProduct->set_sale_price((float)$this->product->params[$paramKey]);
         } else {
-            $this->wooProduct->set_regular_price($this->product->params[$paramKey]);
+            $this->wooProduct->set_regular_price((float)$this->product->params[$paramKey]);
         }
     }
 
     protected function oldPrice($paramKey)
     {
-        if (empty($this->product->params[$paramKey])) {
+        if (empty($this->product->params[$paramKey]) || $this->product->params[$paramKey] === '0') {
             return;
         }
         $this->wooProduct->hasOldPrice = true;
-        $this->wooProduct->set_sale_price($this->wooProduct->get_price());
-        $this->wooProduct->set_regular_price($this->product->params[$paramKey]);
+        $this->wooProduct->set_sale_price($this->wooProduct->get_regular_price());
+        $this->wooProduct->set_regular_price((float)$this->product->params[$paramKey]);
     }
 
     public function setSku($paramKey)
@@ -197,6 +209,11 @@ class WooProductBuilder
                 $backorders = 'yes';
                 $quantity = 2;
                 break;
+            case 'Есть':
+                $status = 'instock';
+                $backorders = 'yes';
+                $quantity = 2;
+                break;
             case 'Нет в наличии':
                 $status = 'onbackorder';
                 $backorders = 'yes';
@@ -239,6 +256,7 @@ class WooProductBuilder
                 break;
         }
 
+        $this->wooProduct->set_manage_stock(true);
         $this->wooProduct->set_stock_status($status);
         $this->wooProduct->set_backorders($backorders);
         $this->wooProduct->set_stock_quantity($quantity);
@@ -257,6 +275,15 @@ class WooProductBuilder
     protected function productCat($paramKey)
     {
         $terms = wp_get_object_terms($this->product->id ,$paramKey);
+        $patentIds = [];
+        foreach ($terms as $key => $term) {
+            $patentIds = array_merge($patentIds, get_ancestors($term->term_id, $paramKey));
+        }
+        foreach ($terms as $key => $term) {
+            if (in_array($term->term_id, $patentIds)) {
+                unset($terms[$key]);
+            }
+        }
         $productCatTerms = [];
         foreach ($terms as $term) {
             $parents = get_term_parents_list($term->term_id, $paramKey, [
@@ -267,7 +294,7 @@ class WooProductBuilder
             ]);
 
             $parents = substr($parents, 0, strlen($parents) - 3);
-            $productCatTerms[] = $this->parse_categories_field($parents);
+            $productCatTerms[] = $this->parse_categories_field($parents, $paramKey);
         }
         wp_set_object_terms($this->wooProduct->get_id(), $productCatTerms, 'product_cat');
     }
@@ -277,7 +304,7 @@ class WooProductBuilder
         // TODO
     }
 
-    public function parse_categories_field($row_term)
+    public function parse_categories_field($row_term, $taxonomySlug = null)
     {
 
         $parent = null;
@@ -302,6 +329,21 @@ class WooProductBuilder
             } else {
                 // New term.
                 $term_id = $term['term_id'];
+                // set image from z_taxonomy_image
+                if (function_exists('z_taxonomy_image_url') && $taxonomySlug) {
+                    $term = get_term_by('name', $_term, $taxonomySlug);
+                    if (!empty($term->term_id) && z_taxonomy_image_url($term->term_id)) {
+                        $taxonomy_image_url = get_option('z_taxonomy_image' . $term->term_id);
+                        if (!empty($taxonomy_image_url)) {
+                            global $wpdb;
+                            $query = $wpdb->prepare("SELECT ID FROM $wpdb->posts WHERE guid = %s", $taxonomy_image_url);
+                            $attachment_id = $wpdb->get_var($query);
+                            if (!empty($attachment_id)) {
+                                update_term_meta($term_id, 'thumbnail_id', $attachment_id);
+                            }
+                        }
+                    }
+                }
             }
 
             // Only requires assign the last category.

@@ -190,7 +190,7 @@ function my_slice_orderby($query)
         $post_type_array[] = $mysql_result['slug'];
     }
     // есть ли post_type и наш ли он
-    if ($_GET['post_type'] && in_array($_GET['post_type'], $post_type_array)) {
+    if (!empty($_GET['post_type']) && in_array($_GET['post_type'], $post_type_array)) {
         //определяем item_id
         $table_name = $wpdb->prefix . "ol_items";
         $sql = 'SELECT * FROM ' . $table_name . ' WHERE slug="' . $_GET['post_type'] . '"';
